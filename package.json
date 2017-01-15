@@ -1,0 +1,22 @@
+{
+  "name": "redux-rtc",
+  "version": "0.1.0",
+  "description": "Use redux store to manage WebRTC connections through socket.io.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "npm test -- --watch"
+  },
+  "keywords": [
+    "webrtc",
+    "redux",
+    "socket.io"
+  ],
+  "author": "Pi-Yin Hsiao",
+  "license": "MIT",
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
+  }
+}
