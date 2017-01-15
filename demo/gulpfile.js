@@ -30,7 +30,7 @@ const jsBundleProcesser = function(bundle, out, dest) {
 const browserifyFromPath = function(path) {
     var browserifiedJs = browserify({
         entries: [path.entryPoint],
-        transform: [babelify],
+        transform: [[babelify, {presets: ['es2015', 'react']}]],
         debug: true
     });
     var bundle = browserifiedJs.bundle();
