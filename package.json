@@ -2,6 +2,10 @@
   "name": "redux-rtc",
   "version": "0.1.0",
   "description": "Use redux store to manage WebRTC connections through socket.io.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bill42362/redux-rtc.git"
+  },
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
