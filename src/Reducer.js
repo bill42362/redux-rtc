@@ -1,13 +1,12 @@
 // Reducer.js
 'use strict'
-import createPeerConnection from './createPeerConnection.js';
-import Actions from './Actions.js';
-const firstPeerConnection = createPeerConnection();
 const defaultState = {
-    peerConnections: [ firstPeerConnection ],
+    peerConnections: [ ],
 };
 const Reducer = (state = defaultState, action) => {
     switch(action.type) {
+        case 'ADD_PEER_CONNECTION':
+            return [...state, action.peerConnection];
         default:
             return state;
     }
