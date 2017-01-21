@@ -3,41 +3,48 @@
 import createPeerConnection from './createPeerConnection.js';
 const connectToRemoteId = (remoteClientId, config) => {
     return (dispatch, getState) => {
-        return dispatch(addPeerConnection(remoteClientId, config))
-        .then(offer => dispatch(setLocalDescription(remoteClientId, offer)))
-        .then(({offer, peerConnection, remoteClientId}) => {
-            // Send offer to Socket.io.
-            console.log('offer:', offer, ', peerConnection:', peerConnection, ', remoteClientId:', remoteClientId);
-        })
-        .catch(error => { throw error; });
-    };
-}
-const addPeerConnection = (remoteClientId, config) => {
-    return (dispatch, getState) => {
-        let peerConnection = createPeerConnection(config);
-        dispatch({type: 'ADD_PEER_CONNECTION', peerConnection: { remoteClientId, peerConnection }});
-        return peerConnection.createOffer();
-    };
-};
-const setLocalDescription = (remoteClientId, offer) => {
-    return (dispatch, getState) => {
-        const peerConnections = getState();
-        const peerConnectionObject = peerConnections.filter(peerConnection => {
-            return remoteClientId === peerConnection.remoteClientId;
-        })[0];
         return new Promise((resolve, reject) => {
-            if(peerConnectionObject) {
-                return peerConnectionObject.peerConnection.setLocalDescription(offer)
-                .then(
-                    () => { resolve(Object.assign({ offer }, peerConnectionObject));},
-                    reject
-                );
+            const peerConnection = createPeerConnection(config);
+            if(peerConnection) {
+                const peer = { remoteClientId, peerConnection };
+                return setupPeer(peer)
+                .then(peer => dispatch(addPeer(peer)))
+                .then(peer => {
+                    // Send offer to socket.io.
+                    console.log('peer:', peer);
+                    resolve(peer);
+                });
             } else {
-                reject(new Error('setLocalDescription() peerConnection not found.'));
+                reject(new Error('Create peerConnection failed.'));
             }
         });
     };
-};
+}
+const setupPeer = (peer) => {
+    return new Promise((resolve, reject) => {
+        let offer = undefined;
+        peer.peerConnection.createOffer()
+        .then(
+            createdOffer => {
+                offer = createdOffer;
+                return peer.peerConnection.setLocalDescription(createdOffer);
+            },
+            () => { reject(new Error('createOffer() failed.')); }
+        )
+        .then(
+            () => { resolve(Object.assign({ offer }, peer)); },
+            () => { reject(new Error('setLocalDescription() failed.')); }
+        )
+    });
+}
+const addPeer = (peer) => {
+    return (dispatch, getState) => {
+        dispatch({ type: 'ADD_PEER', peer });
+        return new Promise((resolve, reject) => {
+            resolve(peer);
+        });
+    };
+}
 
 export { connectToRemoteId };
 export default { connectToRemoteId };

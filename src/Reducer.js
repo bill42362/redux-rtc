@@ -1,12 +1,12 @@
 // Reducer.js
 'use strict'
 const defaultState = {
-    peerConnections: [ ],
+    peers: [ ],
 };
 const Reducer = (state = defaultState, action) => {
     switch(action.type) {
-        case 'ADD_PEER_CONNECTION':
-            return [...state, action.peerConnection];
+        case 'ADD_PEER':
+            return [...state, action.peer];
         default:
             return state;
     }
