@@ -1,7 +1,7 @@
 // Actions.js
 'use strict'
 import createPeerConnection from './createPeerConnection.js';
-const connectToRemoteId = (remoteClientId, config) => {
+const addPeerAndSetup = (remoteClientId, config) => {
     return (dispatch, getState) => {
         return new Promise((resolve, reject) => {
             const peerConnection = createPeerConnection(config);
@@ -9,11 +9,7 @@ const connectToRemoteId = (remoteClientId, config) => {
                 const peer = { remoteClientId, peerConnection };
                 return setupPeer(peer)
                 .then(peer => dispatch(addPeer(peer)))
-                .then(peer => {
-                    // Send offer to socket.io.
-                    console.log('peer:', peer);
-                    resolve(peer);
-                });
+                .then(resolve);
             } else {
                 reject(new Error('Create peerConnection failed.'));
             }
@@ -46,5 +42,5 @@ const addPeer = (peer) => {
     };
 }
 
-export { connectToRemoteId };
-export default { connectToRemoteId };
+export { addPeerAndSetup };
+export default { addPeerAndSetup };
