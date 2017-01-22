@@ -32,6 +32,10 @@ App.ioHandlers = [
             });
             app.io.in(roomId).emit('peerIds', app.rooms[roomId]);
         });
+        client.on('handshake', function(pack) {
+            const client = this;
+            app.io.in(roomId).emit('handshake', pack);
+        });
     }},
 ];
 

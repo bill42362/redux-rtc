@@ -6,7 +6,7 @@ const defaultState = {
 const Reducer = (state = defaultState, action) => {
     switch(action.type) {
         case 'ADD_PEER':
-            return [...state, action.peer];
+            return {peers: [...state.peers, action.peer]};
         default:
             return state;
     }
