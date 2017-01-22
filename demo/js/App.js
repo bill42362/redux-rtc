@@ -21,21 +21,35 @@ const processPeerIds = (peerIds) => {
         return 0 === currentPeers.filter(currentPeer => peerId === currentPeer.remoteClientId).length;
     });
     newPeerIds.forEach(newPeerId => {
-        store.dispatch(Actions.addPeerAndSetup(newPeerId))
-        .then((peer) => {
-            const pack = {senderId: clientId, targetPeer: peer};
-            io.emit('handshake', pack);
-        });
+        if(clientId > newPeerId) {
+            store.dispatch(Actions.addCallPeerAndSetup(newPeerId))
+            .then((peer) => {
+                const pack = {senderId: clientId, targetPeer: peer, needAnswerPack: true};
+                io.emit('handshake', pack);
+            });
+        } else {
+            store.dispatch(Actions.addAnswerPeer(newPeerId));
+        }
     });
 }
 const processHandshakePack = (pack) => {
     const currentPeers = store.getState().peers;
     const targetPeer = currentPeers.filter(peer => pack.senderId === peer.remoteClientId)[0];
-    targetPeer && targetPeer.peerConnection.setRemoteDescription(pack.targetPeer.offer)
-    .then(
-        (arg) => { console.log('setRemoteDescription() arg:', arg); },
-        (error) => { throw error; }
-    );
+    if(targetPeer) {
+        const setRemoteDescriptionPromise
+            = targetPeer.peerConnection.setRemoteDescription(pack.targetPeer.offer);
+        if(pack.needAnswerPack) {
+            setRemoteDescriptionPromise
+            .then(() => {
+                return Actions.setupPeer(targetPeer, true)
+                .then(peer => new Promise((resolve, reject) => {
+                    const pack = {senderId: clientId, targetPeer: peer};
+                    io.emit('handshake', pack);
+                    resolve();
+                });
+            });
+        }
+    }
 }
 
 const io = Socket(`http://localhost:5566/peer?room_id=${roomId}&client_id=${clientId}`);
