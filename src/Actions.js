@@ -1,12 +1,18 @@
 // Actions.js
 'use strict'
 import createPeerConnection from './createPeerConnection.js';
-const addAnswerPeer = (remoteClientId, config) => {
+const addAnswerPeer = (remoteClientId, candidatePackSender, config) => {
     return (dispatch, getState) => {
         return new Promise((resolve, reject) => {
             const peerConnection = createPeerConnection(config);
             if(peerConnection) {
                 const peer = { remoteClientId, peerConnection };
+                peerConnection.onicecandidate = event => {
+                    if(event.candidate) {
+                        const pack = {candidate: event.candidate, peer};
+                        candidatePackSender(pack);
+                    }
+                };
                 dispatch(addPeer(peer))
                 .then(resolve);
             } else {
@@ -15,12 +21,18 @@ const addAnswerPeer = (remoteClientId, config) => {
         });
     };
 }
-const addCallPeerAndSetup = (remoteClientId, config) => {
+const addCallPeerAndSetup = (remoteClientId, candidatePackSender, config) => {
     return (dispatch, getState) => {
         return new Promise((resolve, reject) => {
             const peerConnection = createPeerConnection(config);
             if(peerConnection) {
                 const peer = { remoteClientId, peerConnection };
+                peerConnection.onicecandidate = event => {
+                    if(event.candidate) {
+                        const pack = {candidate: event.candidate, peer};
+                        candidatePackSender(pack);
+                    }
+                };
                 return setupPeer(peer)
                 .then(peer => dispatch(addPeer(peer)))
                 .then(resolve);
@@ -33,13 +45,16 @@ const addCallPeerAndSetup = (remoteClientId, config) => {
 const setupPeer = (peer, isAnswerPeer) => {
     return new Promise((resolve, reject) => {
         let offer = undefined;
-        let createDescriptionPromise = undefined;
-        if(isAnswerPeer) {
-            createDescriptionPromise = peer.peerConnection.createAnswer();
-        } else {
-            createDescriptionPromise = peer.peerConnection.createOffer();
-        }
-        createDescriptionPromise
+        navigator.mediaDevices.getUserMedia({audio: true, video: true})
+        .then(stream => {
+            //peer.peerConnection.addTrack(track, stream);
+            peer.peerConnection.addStream(stream);
+            if(isAnswerPeer) {
+                return peer.peerConnection.createAnswer();
+            } else {
+                return peer.peerConnection.createOffer();
+            }
+        })
         .then(
             createdDescription => {
                 offer = createdDescription;

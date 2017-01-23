@@ -36,6 +36,10 @@ App.ioHandlers = [
             const client = this;
             app.io.in(roomId).emit('handshake', pack);
         });
+        client.on('candidate', function(pack) {
+            const client = this;
+            app.io.in(roomId).emit('candidate', pack);
+        });
     }},
 ];
 
