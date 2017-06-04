@@ -4,7 +4,6 @@ import { Actions, Reducer } from '../../src/index.js';
 import { createStore, applyMiddleware } from 'redux';
 import ReduxThunk from 'redux-thunk';
 import { connect, Provider } from 'react-redux';
-import React from 'react';
 import ReactDOM from 'react-dom';
 import Core from './Core.js';
 

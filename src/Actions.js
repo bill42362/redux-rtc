@@ -76,6 +76,21 @@ const addPeer = (peer) => {
         });
     };
 }
+const updateCandidatePackSender = (candidatePackSender) => {
+    return (dispatch, getState) => {
+        dispatch({ type: 'UPDATE_CANDIDATE_PACK_SENDER', candidatePackSender });
+        let peers = getState().peers;
+        peers.forEach(peer => {
+            peer.peerConnection.onicecandidate = event => {
+                if(event.candidate) {
+                    const pack = {candidate: event.candidate, peer};
+                    candidatePackSender(pack);
+                }
+            }
+        });
+        return new Promise((resolve, reject) => { resolve(); });
+    };
+}
 
-export { addCallPeerAndSetup, addAnswerPeer, setupPeer };
-export default { addCallPeerAndSetup, addAnswerPeer, setupPeer };
+export { addCallPeerAndSetup, addAnswerPeer, setupPeer, updateCandidatePackSender };
+export default { addCallPeerAndSetup, addAnswerPeer, setupPeer, updateCandidatePackSender };

@@ -5,8 +5,10 @@ const defaultState = {
 };
 const Reducer = (state = defaultState, action) => {
     switch(action.type) {
+        case 'UPDATE_CANDIDATE_PACK_SENDER':
+            return Object.assign({}, state, {candidatePackSender: action.candidatePackSender});
         case 'ADD_PEER':
-            return {peers: [...state.peers, action.peer]};
+            return Object.assign({}, state, {peers: [...state.peers, action.peer]});
         default:
             return state;
     }
