@@ -2,6 +2,7 @@
 'use strict'
 const Express = require('express');
 const Http = require('http');
+const SocketServer = require('../src/SocketServer.js');
 
 const App = function() {};
 App.expressStaticRoutes = [
@@ -9,43 +10,8 @@ App.expressStaticRoutes = [
     {path: '/', serverPath: '/dist/html/'},
     {path: '/(:roomId)?', serverPath: '/dist/html/'},
 ];
-App.ioHandlers = [
-    {event: 'connection', handler: function(client) {
-        const app = this;
-        const query = client.handshake.query;
-        const roomId = query.room_id;
-        const clientId = query.client_id;
-        client.join(roomId, function(error) {
-            if(error) { console.log(error); return; }
-            if(!app.rooms[roomId]) { app.rooms[roomId] = []; }
-            app.rooms[roomId].push(clientId);
-            app.io.in(roomId).emit('peerIds', app.rooms[roomId]);
-        }.bind(this));
-        client.on('disconnect', function(reason) {
-            const client = this;
-            const query = client.handshake.query;
-            const roomId = query.room_id;
-            const clientId = query.client_id;
-            const clientIds = app.rooms[roomId];
-            app.rooms[roomId] = clientIds.filter(function(id) {
-                return clientId != id;
-            });
-            app.io.in(roomId).emit('peerIds', app.rooms[roomId]);
-        });
-        client.on('handshake', function(pack) {
-            const client = this;
-            app.io.in(roomId).emit('handshake', pack);
-        });
-        client.on('candidate', function(pack) {
-            const client = this;
-            app.io.in(roomId).emit('candidate', pack);
-        });
-    }},
-];
 
 App.prototype.server = Express();
-App.prototype.socketServer = Http.createServer(Express());
-App.prototype.rooms = {};
 App.prototype.run = function() {
     const server = this.server;
     App.expressStaticRoutes.forEach(function(route) {
@@ -53,12 +19,7 @@ App.prototype.run = function() {
     });
     server.listen(3000);
     console.log('Web listening on 3000 port ...');
-
-    this.io = require('socket.io')(this.socketServer).of('/peer');
-    App.ioHandlers.forEach(function(ioHandler) {
-        this.io.on(ioHandler.event, ioHandler.handler.bind(this));
-    }.bind(this));
-    this.socketServer.listen(5566);
+    SocketServer.server.listen(5566);
     console.log('Socket listening on 5566 port ...');
 };
 module.exports = App;
